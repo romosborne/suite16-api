@@ -1,12 +1,14 @@
 using System.IO.Ports;
 using Microsoft.Extensions.Options;
 
-public class Response {
+public class Response
+{
     public bool Ok { get; set; }
     public string? Error { get; set; }
 }
 
-public interface ISuite16ComService {
+public interface ISuite16ComService
+{
     Response ToggleMute(int id);
     Response SetVolume(int id, int value);
     Response SetTreble(int id, int value);
@@ -19,12 +21,14 @@ public interface ISuite16ComService {
     Response SetOff(int id);
 }
 
-public class Suite16ComOptions {
+public class Suite16ComOptions
+{
     public const string Position = "Suite16Com";
     public string ComPort { get; set; } = "COM1";
 }
 
-public class Suite16ComService : ISuite16ComService, IDisposable {
+public class Suite16ComService : ISuite16ComService, IDisposable
+{
     private readonly object _lock;
     private bool _ready = false;
 
@@ -36,24 +40,33 @@ public class Suite16ComService : ISuite16ComService, IDisposable {
     private readonly ILogger<Suite16ComService> _logger;
     private readonly Response Ok = new() { Ok = true };
 
-    public Suite16ComService(IOptions<Suite16ComOptions> options, IStateService state, ILogger<Suite16ComService> logger) {
+    public Suite16ComService(IOptions<Suite16ComOptions> options, IStateService state, ILogger<Suite16ComService> logger)
+    {
         _state = state;
         _logger = logger;
         _buffer = new List<string>();
         _lock = new object();
 
         _logger.LogInformation($"Attempting to communicate with the Suite16 on port: {options.Value.ComPort}");
-
-        _sp = new SerialPort() {
-            PortName = options.Value.ComPort,
-            BaudRate = 19200,
-            DataBits = 8,
-            StopBits = StopBits.One,
-            Parity = Parity.None,
-            WriteTimeout = 1000,
-            NewLine = "\r"
-        };
-        _sp.Open();
+        try
+        {
+            _sp = new SerialPort()
+            {
+                PortName = options.Value.ComPort,
+                BaudRate = 19200,
+                DataBits = 8,
+                StopBits = StopBits.One,
+                Parity = Parity.None,
+                WriteTimeout = 1000,
+                NewLine = "\r"
+            };
+            _sp.Open();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Failed to open serial port {options.Value.ComPort}: {e.Message}");
+            throw;
+        }
 
         _logger.LogInformation($"Communication open - Attemping state refresh");
 
@@ -62,71 +75,86 @@ public class Suite16ComService : ISuite16ComService, IDisposable {
         _bg.Start();
         CompleteRefresh();
         _logger.LogInformation($"Connection Established!  Waiting for state...");
-        while (!_ready) {
+        while (!_ready)
+        {
             _logger.LogInformation("Waiting...");
             Thread.Sleep(1000);
         }
         _logger.LogInformation("Ready!");
     }
 
-    private void Send(string a) {
-        try {
+    private void Send(string a)
+    {
+        try
+        {
             _logger.LogInformation($"Sending: {a}");
             _sp.Write($"{a}\r");
         }
-        catch (TimeoutException e) {
+        catch (TimeoutException e)
+        {
             _logger.LogError($"Timeout talking to the Suite16");
         }
     }
 
-    private void ReadInBackground() {
-        while(_sp.IsOpen) {
+    private void ReadInBackground()
+    {
+        while (_sp.IsOpen)
+        {
             var command = _sp.ReadLine();
             Console.WriteLine($"Got: {command}");
             _state.ParseCommand(command);
-            if(command == "`AXPGC8R16") _ready = true;
+            if (command == "`AXPGC8R16") _ready = true;
         }
 
         _logger.LogWarning("Serial port closed");
     }
 
-    private Response CompleteRefresh() {
+    private Response CompleteRefresh()
+    {
         Send("`GALRMG00\r");
         return Ok;
     }
 
-    public Response ToggleMute(int room) {
+    public Response ToggleMute(int room)
+    {
         Send($"`SMTOGR{room:00}");
         return Ok;
     }
 
-    public Response SetVolume(int room, int vol) {
+    public Response SetVolume(int room, int vol)
+    {
         Send($"`SV{vol:000}R{room:00}");
         return Ok;
     }
 
-    public Response SetTreble(int id, int value) {
+    public Response SetTreble(int id, int value)
+    {
         Send($"`ST{value:+00;-00;000}R{id:00}");
         return Ok;
     }
 
-    public Response SetBass(int id, int value) {
+    public Response SetBass(int id, int value)
+    {
         Send($"`SB{value:+00;-00;000}R{id:00}");
         return Ok;
     }
 
-    public Response SetLoudnessContour(int id, bool value) {
+    public Response SetLoudnessContour(int id, bool value)
+    {
         Send($"`SLD{(value ? "ON" : "OF")}R{id:00}");
         return Ok;
     }
 
-    public Response SetStereoEnhance(int id, bool value) {
+    public Response SetStereoEnhance(int id, bool value)
+    {
         Send($"`SSE{(value ? "ON" : "OF")}R{id:00}");
         return Ok;
     }
 
-    public Response SetPhonic(int id, Phonic value) {
-        switch (value) {
+    public Response SetPhonic(int id, Phonic value)
+    {
+        switch (value)
+        {
             case Phonic.Stereo:
                 Send($"`SSTROR{id:00}");
                 break;
@@ -141,22 +169,26 @@ public class Suite16ComService : ISuite16ComService, IDisposable {
     }
 
 
-    public Response SetInput(int id, int value) {
+    public Response SetInput(int id, int value)
+    {
         Send($"`SAD{value:00}R{id:00}");
         return Ok;
     }
 
-    public Response SetOn(int id, int input) {
+    public Response SetOn(int id, int input)
+    {
         Send($"`SAD{input:00}R{id:00}");
         return Ok;
     }
 
-    public Response SetOff(int id) {
+    public Response SetOff(int id)
+    {
         Send($"`SRMOFR{id:00}");
         return Ok;
     }
 
-    public void Dispose() {
+    public void Dispose()
+    {
         _sp.Close();
     }
 }
