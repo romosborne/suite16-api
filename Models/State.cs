@@ -25,9 +25,7 @@ public class State
         };
 
         Inputs = new Input[]{
-            new Input(3, "Linn"),
-            new Input(5, "Sky"),
-            new Input(8, "Sky-q"),
+            new Input(10, "Linn"),
         };
     }
 
