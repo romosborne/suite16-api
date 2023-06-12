@@ -90,7 +90,7 @@ public class Suite16ComService : ISuite16ComService, IDisposable
             _logger.LogInformation($"Sending: {a}");
             _sp.Write($"{a}\r");
         }
-        catch (TimeoutException e)
+        catch (TimeoutException)
         {
             _logger.LogError($"Timeout talking to the Suite16");
         }
@@ -101,9 +101,13 @@ public class Suite16ComService : ISuite16ComService, IDisposable
         while (_sp.IsOpen)
         {
             var command = _sp.ReadLine();
-            Console.WriteLine($"Got: {command}");
+            _logger.LogInformation($"Got: {command}");
             _state.ParseCommand(command);
-            if (command == "`AXPGC8R16") _ready = true;
+            if (command == "`AXPGC8R16")
+            {
+                _ready = true;
+                _state.EnableEvents(true);
+            }
         }
 
         _logger.LogWarning("Serial port closed");

@@ -1,33 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Suite16.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class RoomController : ControllerBase {
+public class RoomController : ControllerBase
+{
     private readonly IStateService stateService;
     private readonly ISuite16ComService comService;
+    private readonly IHubContext<RoomHub, IRoomClient> hub;
     private readonly ILogger<RoomController> _logger;
 
     public RoomController(
         IStateService stateService,
         ISuite16ComService comService,
-        ILogger<RoomController> logger) {
+        IHubContext<RoomHub, IRoomClient> hub,
+        ILogger<RoomController> logger)
+    {
         this.stateService = stateService;
         this.comService = comService;
+        this.hub = hub;
         _logger = logger;
     }
 
     [HttpGet]
-    public State Get() {
+    public State Get()
+    {
         return stateService.GetState();
     }
 
     [HttpGet]
     [Route("{id}")]
-    public Room Get(int id) {
+    public Room Get(int id)
+    {
         var state = stateService.GetState();
         return state.Rooms.Single(r => r.Id == id);
+    }
+
+    [HttpPost]
+    [Route("ping/{value}")]
+    public async Task<ActionResult> Ping(string value)
+    {
+        await this.hub.Clients.All.ReceivePing(value);
+        return Ok();
     }
 
     [HttpPost]
@@ -64,7 +80,8 @@ public class RoomController : ControllerBase {
 
     [HttpPost]
     [Route("{id}/on")]
-    public ActionResult SetOn(int id) => Wrapping(() => {
+    public ActionResult SetOn(int id) => Wrapping(() =>
+    {
         var state = stateService.GetState();
         return comService.SetOn(id, state.Rooms.Single(r => r.Id == id).InputId);
     })();
@@ -73,8 +90,10 @@ public class RoomController : ControllerBase {
     [Route("{id}/off")]
     public ActionResult SetOff(int id) => Wrapping(() => comService.SetOff(id))();
 
-    private Func<ActionResult> Wrapping(Func<Response> f) {
-        return () => {
+    private Func<ActionResult> Wrapping(Func<Response> f)
+    {
+        return () =>
+        {
             var response = f();
             if (response.Ok) return Ok();
             else return UnprocessableEntity(response.Error);

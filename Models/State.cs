@@ -1,13 +1,19 @@
+using Microsoft.AspNetCore.SignalR;
+
 public class State
 {
+    private readonly IHubContext<RoomHub, IRoomClient> hub;
+
     public Room[] Rooms { get; set; }
     public Input[] Inputs { get; set; }
 
-    public State()
+    public Boolean EnableEvents { get; set; } = false;
+
+    public State(IHubContext<RoomHub, IRoomClient> hub)
     {
         Rooms = new Room[]{
-            new Room(1, "Mezzanine above bed"),
-            new Room(2, "Mezzanine by TV"),
+            new Room(1, "Mezzanine (1)"),
+            new Room(2, "Mezzanine (2)"),
             new Room(3, "Courtyard"),
             new Room(4, "Back Bedroom"),
             new Room(5, "Dog room"),
@@ -27,10 +33,13 @@ public class State
         Inputs = new Input[]{
             new Input(10, "Linn"),
         };
+        this.hub = hub;
     }
 
-    public void AdjustRoom(int room, Action<Room> f)
+    public void AdjustRoom(int roomId, Action<Room> f)
     {
-        f(Rooms.Single(r => r.Id == room));
+        var room = Rooms.Single(r => r.Id == roomId);
+        f(room);
+        if (EnableEvents) hub.Clients.All.UpdateRoom(room);
     }
 }

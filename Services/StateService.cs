@@ -1,42 +1,58 @@
-public interface IStateService {
+using Microsoft.AspNetCore.SignalR;
+
+public interface IStateService
+{
     void ParseCommand(string command);
+    void EnableEvents(bool enable);
     State GetState();
 }
 
-public class StateService : IStateService {
+public class StateService : IStateService
+{
     private readonly State _state;
     private readonly ILogger<StateService> _logger;
 
-    public StateService(ILogger<StateService> logger) {
+    public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger)
+    {
         _logger = logger;
-        _state = new State();
+        _state = new State(hub);
     }
 
-    public State GetState() {
+    public State GetState()
+    {
         return _state;
     }
 
-    public void ParseCommand(string command) {
+    public void EnableEvents(Boolean enable)
+    {
+        _state.EnableEvents = enable;
+    }
+
+    public void ParseCommand(string command)
+    {
         _logger.LogTrace($"Parsing {command}");
         var f1 = command.Substring(3, 2);
         var f2 = command.Substring(5, 2);
         _ = int.TryParse(command.AsSpan(8, 2), out var room);
         _logger.LogTrace($"f1: {f1}, f2:{f2}");
-        switch (f1) {
+        switch (f1)
+        {
             // Room off
             case "RM":
                 _state.AdjustRoom(room, (r) => r.On = false);
                 break;
             // Input
             case "AD":
-                _state.AdjustRoom(room, (r) => {
+                _state.AdjustRoom(room, (r) =>
+                {
                     r.InputId = int.Parse(f2);
                     r.On = true;
-                    });
+                });
                 break;
             // Mute
             case "MT":
-                switch (f2) {
+                switch (f2)
+                {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.Mute = true);
                         break;
@@ -62,7 +78,8 @@ public class StateService : IStateService {
                 _state.AdjustRoom(room, (r) => r.Treble = treble);
                 break;
             case "LD":
-                switch (f2) {
+                switch (f2)
+                {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.LoudnessContour = true);
                         break;
@@ -72,7 +89,8 @@ public class StateService : IStateService {
                 }
                 break;
             case "SE":
-                switch (f2) {
+                switch (f2)
+                {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.StereoEnhance = true);
                         break;
@@ -85,7 +103,8 @@ public class StateService : IStateService {
                 _state.AdjustRoom(room, (r) => r.Phonic = Phonic.Stereo);
                 break;
             case "MI":
-                switch (f2) {
+                switch (f2)
+                {
                     case "NL":
                         _state.AdjustRoom(room, (r) => r.Phonic = Phonic.MonoLeft);
                         break;
@@ -94,7 +113,7 @@ public class StateService : IStateService {
                         break;
                 }
                 break;
-            default: 
+            default:
                 _logger.LogWarning($"Ignoring command: {command}");
                 break;
         }

@@ -1,5 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddSimpleConsole(o => {
+builder.Logging.AddSimpleConsole(o =>
+{
     o.SingleLine = true;
 });
 
@@ -8,6 +9,7 @@ builder.Services.Configure<Suite16ComOptions>(builder.Configuration.GetRequiredS
 builder.Services.AddSingleton<IStateService, StateService>();
 builder.Services.AddSingleton<ISuite16ComService, Suite16ComService>();
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -22,8 +24,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.MapControllers();
+
+app.UseCors(p =>
+{
+    p.AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithOrigins("http://localhost:5173", "http://speakers.lan")
+        .AllowCredentials();
+});
+
+app.MapHub<RoomHub>("/roomHub");
 
 // var dns = new MdnsService();
 
