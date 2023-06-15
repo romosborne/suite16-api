@@ -52,6 +52,15 @@ public class State
         if (EnableEvents) hub.Clients.All.UpdateRoom(room);
     }
 
+    public void AdjustAllRooms(Action<Room> f)
+    {
+        foreach (var room in Rooms)
+        {
+            f(room);
+            if (EnableEvents) hub.Clients.All.UpdateRoom(room);
+        }
+    }
+
     public void AdjustAnthem(Action<Anthem> f)
     {
         f(Anthem);

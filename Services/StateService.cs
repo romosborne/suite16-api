@@ -81,6 +81,13 @@ public class StateService : IStateService
         _logger.LogTrace($"f1: {f1}, f2:{f2}");
         switch (f1)
         {
+            case "AL":
+                if (f2 == "OF")
+                {
+                    _state.AdjustAllRooms((r) => r.On = false);
+                }
+                break;
+
             // Room off
             case "RM":
                 _state.AdjustRoom(room, (r) => r.On = false);
@@ -158,7 +165,7 @@ public class StateService : IStateService
                 }
                 break;
             default:
-                _logger.LogWarning($"Ignoring command: {command}");
+                _logger.LogTrace($"Ignoring command: {command}");
                 break;
         }
     }
