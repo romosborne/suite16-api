@@ -67,7 +67,8 @@ public class Suite16ComService : ISuite16ComService, IDisposable
         _bg = new Thread(ReadInBackground);
         _bg.IsBackground = true;
         _bg.Start();
-        CompleteRefresh();
+        //CompleteRefresh();
+        _ready = true;
         _logger.LogInformation($"Connection Established!  Waiting for state...");
         while (!_ready)
         {
