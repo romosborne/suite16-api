@@ -9,17 +9,20 @@ public class RoomController : ControllerBase
 {
     private readonly IStateService stateService;
     private readonly ISuite16ComService comService;
+    private readonly IAnthemComService anthemComService;
     private readonly IHubContext<RoomHub, IRoomClient> hub;
     private readonly ILogger<RoomController> _logger;
 
     public RoomController(
         IStateService stateService,
         ISuite16ComService comService,
+        IAnthemComService anthemComService,
         IHubContext<RoomHub, IRoomClient> hub,
         ILogger<RoomController> logger)
     {
         this.stateService = stateService;
         this.comService = comService;
+        this.anthemComService = anthemComService;
         this.hub = hub;
         _logger = logger;
     }
