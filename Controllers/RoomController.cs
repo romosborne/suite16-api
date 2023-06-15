@@ -50,6 +50,15 @@ public class RoomController : ControllerBase
     }
 
     [HttpPost]
+    [Route("anthem/vol/{value}")]
+    public ActionResult SetAnthemVol(double value) => Wrapping(() => anthemComService.SetVolume(value))();
+
+    [HttpPost]
+    [Route("anthem/input/{value}")]
+    public ActionResult SetAnthemInput(string value) => Wrapping(() => anthemComService.SetInput(value))();
+
+
+    [HttpPost]
     [Route("{id}/toggleMute")]
     public ActionResult ToggleMute(int id) => Wrapping(() => comService.ToggleMute(id))();
 

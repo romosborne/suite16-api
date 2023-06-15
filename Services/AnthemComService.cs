@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 public interface IAnthemComService
 {
     Response SetVolume(double value);
+    Response SetInput(string id);
 }
 
 public class AnthemComOptions
@@ -86,7 +87,7 @@ public class AnthemComService : IAnthemComService, IDisposable
         while (_sp.IsOpen)
         {
             var command = _sp.ReadLine();
-            _logger.LogInformation($"Got: {command}");
+            _logger.LogTrace($"Got: {command}");
 
             _state.ParseAnthemCommand(command);
 
@@ -109,6 +110,12 @@ public class AnthemComService : IAnthemComService, IDisposable
     public Response SetVolume(double vol)
     {
         Send($"P1VM{vol:##.##}");
+        return Ok;
+    }
+
+    public Response SetInput(string id)
+    {
+        Send($"P1S{id[0]}");
         return Ok;
     }
 

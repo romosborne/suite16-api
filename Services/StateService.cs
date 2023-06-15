@@ -45,7 +45,9 @@ public class StateService : IStateService
         if (match.Success)
         {
             var input = match.Groups[1];
+            _state.AdjustAnthem(a => a.Input = input.ToString()[0]);
             var vol = match.Groups[2];
+            _state.AdjustAnthem(a => a.Volume = double.Parse(vol.ToString()));
             _logger.LogInformation($"Anthem on input {input} at {vol}db");
             return;
         }
@@ -53,6 +55,7 @@ public class StateService : IStateService
         if (command.StartsWith("P1S"))
         {
             var input = command[3];
+            _state.AdjustAnthem(a => a.Input = input);
             _logger.LogInformation($"Anthem input set to {input}");
         }
         else if (command.StartsWith("P1VM"))

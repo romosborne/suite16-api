@@ -4,6 +4,7 @@ public class State
 {
     private readonly IHubContext<RoomHub, IRoomClient> hub;
 
+    public AnthemInput[] AnthemInputs { get; set; }
     public Anthem Anthem { get; set; }
     public Room[] Rooms { get; set; }
     public Input[] Inputs { get; set; }
@@ -13,6 +14,11 @@ public class State
     public State(IHubContext<RoomHub, IRoomClient> hub)
     {
         Anthem = new Anthem();
+
+        AnthemInputs = new[]{
+            new AnthemInput('9', "Linn"),
+            new AnthemInput('7', "Sky"),
+        };
 
         Rooms = new Room[]{
             new Room(1, "Mezzanine (1)"),

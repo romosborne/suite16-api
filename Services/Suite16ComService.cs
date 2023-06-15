@@ -96,7 +96,7 @@ public class Suite16ComService : ISuite16ComService, IDisposable
         while (_sp.IsOpen)
         {
             var command = _sp.ReadLine();
-            _logger.LogInformation($"Got: {command}");
+            _logger.LogTrace($"Got: {command}");
             _state.ParseSuite16Command(command);
             if (command == "`AXPGC8R16")
             {
