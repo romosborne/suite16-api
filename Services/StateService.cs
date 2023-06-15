@@ -14,7 +14,7 @@ public class StateService : IStateService
     private readonly State _state;
     private readonly ILogger<StateService> _logger;
 
-    private readonly Regex _anthemInitial = new Regex("P1S(.)V([-[:digit:].]*)");
+    private readonly Regex _anthemInitial = new Regex("P1S(.)V([0-9.-]*)");
 
     public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger)
     {
