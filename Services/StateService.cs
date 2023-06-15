@@ -49,7 +49,7 @@ public class StateService : IStateService
             {
                 _logger.LogTrace($"Ignoring volume ({command[4]})");
             }
-            var volStr = command.Substring(4, 6);
+            var volStr = command.Substring(4);
             _logger.LogTrace($"V1: {volStr}");
             var volume = double.Parse(volStr);
             _logger.LogInformation($"Anthem volume to {volume}");
