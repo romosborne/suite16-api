@@ -8,7 +8,7 @@ public interface IAnthemComService
 
 public class AnthemComOptions
 {
-    public const string Position = "Anthem";
+    public const string Position = "AnthemCom";
     public string ComPort { get; set; } = "/dev/ttyUSB1";
 }
 
