@@ -1,8 +1,10 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 
 public interface IStateService
 {
-    void ParseCommand(string command);
+    void ParseSuite16Command(string command);
+    void ParseAnthemCommand(string command);
     void EnableEvents(bool enable);
     State GetState();
 }
@@ -11,6 +13,8 @@ public class StateService : IStateService
 {
     private readonly State _state;
     private readonly ILogger<StateService> _logger;
+
+    private readonly Regex _anthemInitial = new Regex("P1S(.)V([0-9.-]*)");
 
     public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger)
     {
@@ -28,7 +32,47 @@ public class StateService : IStateService
         _state.EnableEvents = enable;
     }
 
-    public void ParseCommand(string command)
+    public void ParseAnthemCommand(string command)
+    {
+        _logger.LogTrace($"Parsing {command}");
+        if (!command.StartsWith("P1"))
+        {
+            _logger.LogTrace($"Ignoring {command}");
+            return;
+        }
+
+        var match = _anthemInitial.Match(command);
+        if (match.Success)
+        {
+            var input = match.Groups[1];
+            _state.AdjustAnthem(a => a.Input = input.ToString()[0]);
+            var vol = match.Groups[2];
+            _state.AdjustAnthem(a => a.Volume = double.Parse(vol.ToString()));
+            _logger.LogInformation($"Anthem on input {input} at {vol}db");
+            return;
+        }
+
+        if (command.StartsWith("P1S"))
+        {
+            var input = command[3];
+            _state.AdjustAnthem(a => a.Input = input);
+            _logger.LogInformation($"Anthem input set to {input}");
+        }
+        else if (command.StartsWith("P1VM"))
+        {
+            if (command[4] != '-')
+            {
+                _logger.LogTrace($"Ignoring volume ({command[4]})");
+            }
+            var volStr = command.Substring(4);
+            _logger.LogTrace($"V1: {volStr}");
+            var volume = double.Parse(volStr);
+            _logger.LogInformation($"Anthem volume to {volume}");
+            _state.AdjustAnthem((a) => a.Volume = volume);
+        }
+    }
+
+    public void ParseSuite16Command(string command)
     {
         _logger.LogTrace($"Parsing {command}");
         var f1 = command.Substring(3, 2);

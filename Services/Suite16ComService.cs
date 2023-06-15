@@ -1,12 +1,6 @@
 using System.IO.Ports;
 using Microsoft.Extensions.Options;
 
-public class Response
-{
-    public bool Ok { get; set; }
-    public string? Error { get; set; }
-}
-
 public interface ISuite16ComService
 {
     Response ToggleMute(int id);
@@ -24,7 +18,7 @@ public interface ISuite16ComService
 public class Suite16ComOptions
 {
     public const string Position = "Suite16Com";
-    public string ComPort { get; set; } = "COM1";
+    public string ComPort { get; set; } = "/dev/ttyUSB0";
 }
 
 public class Suite16ComService : ISuite16ComService, IDisposable
@@ -73,7 +67,9 @@ public class Suite16ComService : ISuite16ComService, IDisposable
         _bg = new Thread(ReadInBackground);
         _bg.IsBackground = true;
         _bg.Start();
+
         CompleteRefresh();
+
         _logger.LogInformation($"Connection Established!  Waiting for state...");
         while (!_ready)
         {
@@ -101,8 +97,8 @@ public class Suite16ComService : ISuite16ComService, IDisposable
         while (_sp.IsOpen)
         {
             var command = _sp.ReadLine();
-            _logger.LogInformation($"Got: {command}");
-            _state.ParseCommand(command);
+            _logger.LogTrace($"Got: {command}");
+            _state.ParseSuite16Command(command);
             if (command == "`AXPGC8R16")
             {
                 _ready = true;
