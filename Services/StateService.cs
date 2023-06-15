@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 
 public interface IStateService
@@ -12,6 +13,8 @@ public class StateService : IStateService
 {
     private readonly State _state;
     private readonly ILogger<StateService> _logger;
+
+    private readonly Regex _anthemInitial = new Regex("P1S(.)V([-[:digit:].]*)");
 
     public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger)
     {
@@ -35,6 +38,15 @@ public class StateService : IStateService
         if (!command.StartsWith("P1"))
         {
             _logger.LogTrace($"Ignoring {command}");
+            return;
+        }
+
+        var match = _anthemInitial.Match(command);
+        if (match.Success)
+        {
+            var input = match.Groups[1];
+            var vol = match.Groups[2];
+            _logger.LogInformation($"Anthem on input {input} at {vol}db");
             return;
         }
 
