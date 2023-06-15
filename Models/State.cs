@@ -4,6 +4,7 @@ public class State
 {
     private readonly IHubContext<RoomHub, IRoomClient> hub;
 
+    public Anthem Anthem { get; set; }
     public Room[] Rooms { get; set; }
     public Input[] Inputs { get; set; }
 
@@ -11,6 +12,8 @@ public class State
 
     public State(IHubContext<RoomHub, IRoomClient> hub)
     {
+        Anthem = new Anthem();
+
         Rooms = new Room[]{
             new Room(1, "Mezzanine (1)"),
             new Room(2, "Mezzanine (2)"),
@@ -41,5 +44,11 @@ public class State
         var room = Rooms.Single(r => r.Id == roomId);
         f(room);
         if (EnableEvents) hub.Clients.All.UpdateRoom(room);
+    }
+
+    public void AdjustAnthem(Action<Anthem> f)
+    {
+        f(Anthem);
+        if (EnableEvents) hub.Clients.All.UpdateAnthem(Anthem);
     }
 }

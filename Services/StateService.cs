@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.SignalR;
 
 public interface IStateService
 {
-    void ParseCommand(string command);
+    void ParseSuite16Command(string command);
+    void ParseAnthemCommand(string command);
     void EnableEvents(bool enable);
     State GetState();
 }
@@ -28,7 +29,35 @@ public class StateService : IStateService
         _state.EnableEvents = enable;
     }
 
-    public void ParseCommand(string command)
+    public void ParseAnthemCommand(string command)
+    {
+        _logger.LogTrace($"Parsing {command}");
+        if (!command.StartsWith("P1"))
+        {
+            _logger.LogTrace($"Ignoring {command}");
+            return;
+        }
+
+        if (command.StartsWith("P1S"))
+        {
+            var input = command[3];
+            _logger.LogInformation($"Anthem input set to {input}");
+        }
+        else if (command.StartsWith("P1VM"))
+        {
+            if (command[4] != '-')
+            {
+                _logger.LogTrace($"Ignoring volume ({command[4]})");
+            }
+            var volStr = command.Substring(4, 6);
+            _logger.LogTrace($"V1: {volStr}");
+            var volume = double.Parse(volStr);
+            _logger.LogInformation($"Anthem volume to {volume}");
+            _state.AdjustAnthem((a) => a.Volume = volume);
+        }
+    }
+
+    public void ParseSuite16Command(string command)
     {
         _logger.LogTrace($"Parsing {command}");
         var f1 = command.Substring(3, 2);
