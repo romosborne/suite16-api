@@ -10,18 +10,19 @@ public interface IAnthemComService
 public class AnthemComOptions
 {
     public const string Position = "AnthemCom";
-    public string ComPort { get; set; } = "/dev/ttyUSB1";
+    public string ComPort { get; set; } = "";
 }
 
 public class AnthemComService : IAnthemComService, IDisposable
 {
     private readonly object _lock;
     private bool _ready = false;
+    private bool _enabled = false;
 
-    private readonly Thread _bg;
+    private readonly Thread? _bg;
 
     private readonly List<string> _buffer;
-    private readonly SerialPort _sp;
+    private readonly SerialPort? _sp;
     private readonly IStateService _state;
     private readonly ILogger<AnthemComService> _logger;
     private readonly Response Ok = new() { Ok = true };
@@ -32,6 +33,12 @@ public class AnthemComService : IAnthemComService, IDisposable
         _logger = logger;
         _buffer = new List<string>();
         _lock = new object();
+
+        if (string.IsNullOrEmpty(options.Value.ComPort))
+        {
+            _enabled = false;
+            return;
+        }
 
         _logger.LogInformation($"Attempting to communicate with the Anthem on port: {options.Value.ComPort}");
         try
@@ -55,8 +62,10 @@ public class AnthemComService : IAnthemComService, IDisposable
 
         _logger.LogInformation($"Communication open - Attemping state refresh");
 
-        _bg = new Thread(ReadInBackground);
-        _bg.IsBackground = true;
+        _bg = new Thread(ReadInBackground)
+        {
+            IsBackground = true
+        };
         _bg.Start();
         CompleteRefresh();
 
@@ -66,15 +75,17 @@ public class AnthemComService : IAnthemComService, IDisposable
             _logger.LogInformation("Waiting...");
             Thread.Sleep(1000);
         }
+        _enabled = true;
         _logger.LogInformation("Ready!");
     }
 
     private void Send(string a)
     {
+        if (!_enabled) return;
         try
         {
             _logger.LogInformation($"Sending: {a}");
-            _sp.Write($"{a}\r");
+            _sp?.Write($"{a}\r");
         }
         catch (TimeoutException)
         {
@@ -122,6 +133,6 @@ public class AnthemComService : IAnthemComService, IDisposable
 
     public void Dispose()
     {
-        _sp.Close();
+        _sp?.Close();
     }
 }

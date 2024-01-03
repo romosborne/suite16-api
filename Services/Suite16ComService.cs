@@ -23,12 +23,10 @@ public class Suite16ComOptions
 
 public class Suite16ComService : ISuite16ComService, IDisposable
 {
-    private readonly object _lock;
     private bool _ready = false;
 
     private readonly Thread _bg;
 
-    private readonly List<string> _buffer;
     private readonly SerialPort _sp;
     private readonly IStateService _state;
     private readonly ILogger<Suite16ComService> _logger;
@@ -38,8 +36,6 @@ public class Suite16ComService : ISuite16ComService, IDisposable
     {
         _state = state;
         _logger = logger;
-        _buffer = new List<string>();
-        _lock = new object();
 
         _logger.LogInformation($"Attempting to communicate with the Suite16 on port: {options.Value.ComPort}");
         try
@@ -64,8 +60,10 @@ public class Suite16ComService : ISuite16ComService, IDisposable
 
         _logger.LogInformation($"Communication open - Attemping state refresh");
 
-        _bg = new Thread(ReadInBackground);
-        _bg.IsBackground = true;
+        _bg = new Thread(ReadInBackground)
+        {
+            IsBackground = true
+        };
         _bg.Start();
 
         CompleteRefresh();
