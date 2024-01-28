@@ -31,7 +31,7 @@ public class State
             new Room(8, "8 - Unknown"),
             new Room(9, "Kitchen"),
             new Room(10, "10 - Unknown"),
-            new Room(11, "11 - Unknown"),
+            new Room(11, "Butterfly Room"),
             new Room(12, "Main Bathroom"),
             new Room(13, "Back Patio"),
             new Room(14, "Dining Room"),
