@@ -17,7 +17,7 @@ public class AnthemComService : IAnthemComService, IDisposable
 {
     private readonly object _lock;
     private bool _ready = false;
-    private bool _enabled = false;
+    private bool _enabled = true;
 
     private readonly Thread? _bg;
 
@@ -75,7 +75,6 @@ public class AnthemComService : IAnthemComService, IDisposable
             _logger.LogInformation("Waiting...");
             Thread.Sleep(1000);
         }
-        _enabled = true;
         _logger.LogInformation("Ready!");
     }
 
