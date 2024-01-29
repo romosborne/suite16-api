@@ -1,6 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddSimpleConsole(o =>
-{
+builder.Logging.AddSimpleConsole(o => {
     o.SingleLine = true;
 });
 
@@ -25,16 +24,14 @@ app.Services.GetService<ISuite16ComService>();
 app.Services.GetService<IAnthemComService>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.MapControllers();
 
-app.UseCors(p =>
-{
+app.UseCors(p => {
     p.AllowAnyHeader()
         .AllowAnyMethod()
         .WithOrigins("http://localhost:5173", "http://speakers.lan")

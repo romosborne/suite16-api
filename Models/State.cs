@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-public class State
-{
+public class State {
     private readonly IHubContext<RoomHub, IRoomClient> hub;
 
     public AnthemInput[] AnthemInputs { get; set; }
@@ -11,8 +10,7 @@ public class State
 
     public Boolean EnableEvents { get; set; } = false;
 
-    public State(IHubContext<RoomHub, IRoomClient> hub)
-    {
+    public State(IHubContext<RoomHub, IRoomClient> hub) {
         Anthem = new Anthem();
 
         AnthemInputs = new[]{
@@ -45,24 +43,20 @@ public class State
         this.hub = hub;
     }
 
-    public void AdjustRoom(int roomId, Action<Room> f)
-    {
+    public void AdjustRoom(int roomId, Action<Room> f) {
         var room = Rooms.Single(r => r.Id == roomId);
         f(room);
         if (EnableEvents) hub.Clients.All.UpdateRoom(room);
     }
 
-    public void AdjustAllRooms(Action<Room> f)
-    {
-        foreach (var room in Rooms)
-        {
+    public void AdjustAllRooms(Action<Room> f) {
+        foreach (var room in Rooms) {
             f(room);
             if (EnableEvents) hub.Clients.All.UpdateRoom(room);
         }
     }
 
-    public void AdjustAnthem(Action<Anthem> f)
-    {
+    public void AdjustAnthem(Action<Anthem> f) {
         f(Anthem);
         if (EnableEvents) hub.Clients.All.UpdateAnthem(Anthem);
     }

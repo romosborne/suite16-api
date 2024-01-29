@@ -1,49 +1,41 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 
-public interface IStateService
-{
+public interface IStateService {
     void ParseSuite16Command(string command);
     void ParseAnthemCommand(string command);
     void EnableEvents(bool enable);
     State GetState();
 }
 
-public class StateService : IStateService
-{
+public class StateService : IStateService {
     private readonly State _state;
     private readonly ILogger<StateService> _logger;
 
     private readonly Regex _anthemInitial = new Regex("P1S(.)V([0-9.-]*)");
 
-    public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger)
-    {
+    public StateService(IHubContext<RoomHub, IRoomClient> hub, ILogger<StateService> logger) {
         _logger = logger;
         _state = new State(hub);
     }
 
-    public State GetState()
-    {
+    public State GetState() {
         return _state;
     }
 
-    public void EnableEvents(Boolean enable)
-    {
+    public void EnableEvents(bool enable) {
         _state.EnableEvents = enable;
     }
 
-    public void ParseAnthemCommand(string command)
-    {
+    public void ParseAnthemCommand(string command) {
         _logger.LogTrace($"Parsing {command}");
-        if (!command.StartsWith("P1"))
-        {
+        if (!command.StartsWith("P1")) {
             _logger.LogTrace($"Ignoring {command}");
             return;
         }
 
         var match = _anthemInitial.Match(command);
-        if (match.Success)
-        {
+        if (match.Success) {
             var input = match.Groups[1];
             _state.AdjustAnthem(a => a.Input = input.ToString()[0]);
             var vol = match.Groups[2];
@@ -52,16 +44,13 @@ public class StateService : IStateService
             return;
         }
 
-        if (command.StartsWith("P1S"))
-        {
+        if (command.StartsWith("P1S")) {
             var input = command[3];
             _state.AdjustAnthem(a => a.Input = input);
             _logger.LogInformation($"Anthem input set to {input}");
         }
-        else if (command.StartsWith("P1VM"))
-        {
-            if (command[4] != '-')
-            {
+        else if (command.StartsWith("P1VM")) {
+            if (command[4] != '-') {
                 _logger.LogTrace($"Ignoring volume ({command[4]})");
             }
             var volStr = command.Substring(4);
@@ -72,18 +61,15 @@ public class StateService : IStateService
         }
     }
 
-    public void ParseSuite16Command(string command)
-    {
+    public void ParseSuite16Command(string command) {
         _logger.LogTrace($"Parsing {command}");
         var f1 = command.Substring(3, 2);
         var f2 = command.Substring(5, 2);
         _ = int.TryParse(command.AsSpan(8, 2), out var room);
         _logger.LogTrace($"f1: {f1}, f2:{f2}");
-        switch (f1)
-        {
+        switch (f1) {
             case "AL":
-                if (f2 == "OF")
-                {
+                if (f2 == "OF") {
                     _state.AdjustAllRooms((r) => r.On = false);
                 }
                 break;
@@ -94,16 +80,14 @@ public class StateService : IStateService
                 break;
             // Input
             case "AD":
-                _state.AdjustRoom(room, (r) =>
-                {
+                _state.AdjustRoom(room, (r) => {
                     r.InputId = int.Parse(f2);
                     r.On = true;
                 });
                 break;
             // Mute
             case "MT":
-                switch (f2)
-                {
+                switch (f2) {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.Mute = true);
                         break;
@@ -129,8 +113,7 @@ public class StateService : IStateService
                 _state.AdjustRoom(room, (r) => r.Treble = treble);
                 break;
             case "LD":
-                switch (f2)
-                {
+                switch (f2) {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.LoudnessContour = true);
                         break;
@@ -140,8 +123,7 @@ public class StateService : IStateService
                 }
                 break;
             case "SE":
-                switch (f2)
-                {
+                switch (f2) {
                     case "ON":
                         _state.AdjustRoom(room, (r) => r.StereoEnhance = true);
                         break;
@@ -154,8 +136,7 @@ public class StateService : IStateService
                 _state.AdjustRoom(room, (r) => r.Phonic = Phonic.Stereo);
                 break;
             case "MI":
-                switch (f2)
-                {
+                switch (f2) {
                     case "NL":
                         _state.AdjustRoom(room, (r) => r.Phonic = Phonic.MonoLeft);
                         break;

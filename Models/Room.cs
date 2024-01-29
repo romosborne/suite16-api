@@ -14,7 +14,7 @@ public class Room {
     public Phonic Phonic { get; set; }
 
     public Room(int id, string name) {
-        this.Id = id;
-        this.Name = name;
+        Id = id;
+        Name = name;
     }
 }

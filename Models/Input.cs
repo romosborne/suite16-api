@@ -3,8 +3,8 @@ public class Input {
     public string Name { get; set; }
 
     public Input(int id, string name) {
-        this.Id = id;
-        this.Name = name;
+        Id = id;
+        Name = name;
     }
 
 }
